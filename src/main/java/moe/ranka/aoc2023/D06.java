@@ -23,17 +23,22 @@ public class D06 extends Day {
                 }
             }
             result *= wins;
-
-
         }
         System.out.println(result);
-
     }
 
     @Override
     public void part2() {
-        // TODO Auto-generated method stub
+        var lines = this.readFile("06.txt").split("\n");
+        long time = Long.parseLong(lines[0].split(":")[1].trim().replaceAll("\s+", ""));
+        long distance = Long.parseLong(lines[1].split(":")[1].trim().replaceAll("\s+", ""));
 
+            int wins = 0;
+            for (long j = 0; j <= time; j++) {
+                if (j * (time - j) > distance) {
+                    wins++;
+                }
+            }
+        System.out.println(wins);
     }
-
 }
