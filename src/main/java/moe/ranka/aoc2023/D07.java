@@ -2,11 +2,11 @@ package moe.ranka.aoc2023;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 public class D07 extends Day {
 
@@ -32,16 +32,16 @@ public class D07 extends Day {
             this.input = input;
             this.bid = bid;
             for (char card : input.toCharArray()) {
-                System.out.println(card);
                 Integer currentValue = cards.computeIfAbsent(card, s -> 0);
-         
+
                 cards.put(card, currentValue + 1);
+
             }
             this.type = calculateType();
         }
 
         private HandType calculateType() {
-            List<Integer> list = new ArrayList<>(cards.values()); 
+            List<Integer> list = new ArrayList<>(cards.values());
             list.sort(Collections.reverseOrder());
 
             if (list.size() == 1) {
@@ -79,6 +79,91 @@ public class D07 extends Day {
         }
     }
 
+    class JokerAwareHand implements Comparable<JokerAwareHand> {
+        private static List<Character> cardValues = Arrays.asList('A', 'K', 'Q', 'T', '9', '8', '7', '6', '5', '4', '3',
+                '2', 'J');
+        private Map<Character, Integer> cards = new HashMap<>();
+
+        private final HandType type;
+
+        private String input;
+        public int bid;
+
+        public HandType getType() {
+            return type;
+        }
+
+        public JokerAwareHand(String input, int bid) {
+            this.input = input;
+            this.bid = bid;
+
+            int jokers = 0;
+            char mostCards = '0';
+            int mostCardsAmount = 0;
+
+            for (char card : input.toCharArray()) {
+                if (card != 'J') {
+                    Integer currentValue = cards.computeIfAbsent(card, s -> 0);
+                    cards.put(card, currentValue + 1);
+
+                    if (currentValue + 1 > mostCardsAmount) {
+                        mostCards = card;
+                        mostCardsAmount = currentValue + 1;
+                    }
+                } else {
+                    jokers++;
+                }
+            }
+
+            if (jokers == 5) {
+                cards.put('J', jokers);
+            } else {
+
+                cards.put(mostCards, cards.get(mostCards) + jokers);
+            }
+
+            this.type = calculateType();
+        }
+
+        private HandType calculateType() {
+            List<Integer> list = new ArrayList<>(cards.values());
+            list.sort(Collections.reverseOrder());
+
+            if (list.size() == 1) {
+                return HandType.FIVE_OF_A_KIND;
+            } else if (list.get(0) == 4) {
+                return HandType.FOUR_OF_A_KIND;
+            } else if (list.get(0) == 3 && list.get(1) == 2) {
+                return HandType.FULL_HOUSE;
+            } else if (list.get(0) == 3 && list.get(1) == 1) {
+                return HandType.THREE_OF_A_KIND;
+            } else if (list.get(0) == 2 && list.get(1) == 2) {
+                return HandType.TWO_PAIR;
+            } else if (list.get(0) == 2 && list.get(1) == 1) {
+                return HandType.ONE_PAIR;
+            } else {
+                return HandType.HIGH_CARD;
+            }
+
+        }
+
+        @Override
+        public int compareTo(JokerAwareHand hand) {
+            if (hand.getType() != this.getType()) {
+                return hand.getType().ordinal() - this.getType().ordinal();
+            }
+            for (int i = 0; i < input.toCharArray().length; i++) {
+                int handRank = JokerAwareHand.cardValues.indexOf(hand.input.charAt(i));
+                int ownRank = JokerAwareHand.cardValues.indexOf(input.charAt(i));
+                if (handRank != ownRank) {
+                    return handRank - ownRank;
+                }
+            }
+
+            return 0;
+        }
+    }
+
     @Override
     public void part1() {
         var lines = this.readFile("07.txt").split("\n");
@@ -93,18 +178,31 @@ public class D07 extends Day {
         }
         hands.sort(Comparable::compareTo);
 
-
         for (int i = 0; i < hands.size(); i++) {
-           result += (i+1) * hands.get(i).bid;
+            result += (i + 1) * hands.get(i).bid;
         }
-        System.out.println(result   );
+        System.out.println(result);
 
     }
 
     @Override
     public void part2() {
-        // TODO Auto-generated method stub
+        var lines = this.readFile("07.txt").split("\n");
+        int result = 0;
+        List<JokerAwareHand> hands = new ArrayList<>();
+        for (String line : lines) {
+            String hand = line.split(" ")[0];
+            int bid = Integer.parseInt(line.split(" ")[1]);
 
+            hands.add(new JokerAwareHand(hand, bid));
+
+        }
+        hands.sort(Comparable::compareTo);
+
+        for (int i = 0; i < hands.size(); i++) {
+            result += (i + 1) * hands.get(i).bid;
+        }
+        System.out.println(result);
     }
 
 }
