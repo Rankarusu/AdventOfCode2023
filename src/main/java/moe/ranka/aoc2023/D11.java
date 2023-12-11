@@ -1,6 +1,7 @@
 package moe.ranka.aoc2023;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -72,13 +73,79 @@ public class D11 extends Day {
             }
 
         }
-        System.out.println(result.stream().mapToInt(x->x).sum());
+        System.out.println(result.stream().mapToInt(x -> x).sum());
     }
 
     @Override
     public void part2() {
-        // TODO Auto-generated method stub
+        var lines = this.readFile("11.txt").split("\n");
 
+        List<Integer> expandedRows = new ArrayList<>();
+        List<Integer> expandedCols = new ArrayList<>();
+
+        int multiplier = 999_999;
+
+        for (int i = 0; i < lines.length; i++) {
+            Set<Character> charsSet = lines[i].chars().mapToObj(e -> (char) e).collect(Collectors.toSet());
+            if (charsSet.size() == 1 && charsSet.contains('.')) {
+                expandedRows.add(i);
+            }
+        }
+
+        for (int i = 0; i < lines[0].length(); i++) {
+            int hashes = 0;
+            for (int j = 0; j < lines.length; j++) {
+                char currentChar = lines[j].charAt(i);
+                if (currentChar == '#') {
+                    hashes++;
+                }
+            }
+            if (hashes == 0) {
+                expandedCols.add(i);
+            }
+        }
+
+        char[][] map = Arrays.stream(lines).map(String::toCharArray).toArray(char[][]::new);
+
+        List<int[]> galaxies = new ArrayList<>();
+
+        for (int i = 0; i < map.length; i++) {
+            for (int j = 0; j < map[i].length; j++) {
+                char current = map[i][j];
+                if (current == '#') {
+                    galaxies.add(new int[] { i, j });
+                }
+            }
+        }
+
+        List<Long> result = new ArrayList<>();
+
+        for (int i = 0; i < galaxies.size(); i++) {
+            int[] current = galaxies.get(i);
+            for (int j = i + 1; j < galaxies.size(); j++) {
+                int[] next = galaxies.get(j);
+
+                long ydist = Math.abs(current[0] - next[0]);
+
+                for (long row : expandedRows) {
+                    if (Math.min(current[0], next[0]) < row && row < Math.max(current[0], next[0])){
+                        ydist+=multiplier;
+                    }
+                }
+
+                long xdist = Math.abs(current[1] - next[1]);
+
+                for (long col : expandedCols) {
+                    if (Math.min(current[1], next[1]) < col && col < Math.max(current[1], next[1])){
+                        xdist+=multiplier;
+                    }
+                }
+
+                result.add(xdist + ydist);
+            }
+
+        }
+         System.out.println(result.stream().mapToLong(x -> x).sum());
     }
 
 }
